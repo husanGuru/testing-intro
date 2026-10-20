@@ -3,37 +3,29 @@ function notImplemented() {
 }
 
 function addToCart(cart, product, quantity) {
-  if (quantity === 0 || quantity > product.stock) {
-    throw RangeError();
+  const existing = cart.find(item => item.id === product.id);
+  const total = (existing ? existing.quantity : 0) + quantity;
+  if (quantity < 1 || total > product.stock) {
+    throw new RangeError(`Доступно не больше ${product.stock} шт.`);
   }
 
-  const productIndex = cart.findIndex(item => item.id === product.id);
-  if (productIndex === -1) {
+  if (!existing) {
     return [...cart, { ...product, quantity }];
-  } else {
-    cart[productIndex].quantity += quantity;
-    return cart;
   }
+  return cart.map(item => (item.id === product.id ? { ...item, quantity: total } : item));
 }
-function changeQuantity(cart, index, quantity) {
-  const item = cart[index - 1];
+function changeQuantity(cart, productId, quantity) {
+  const item = cart.find(item => item.id === productId);
   if (!item) {
     return cart;
   }
-  if (quantity === 0 || quantity > item.stock) {
-    throw RangeError();
+  if (quantity < 1 || quantity > item.stock) {
+    throw new RangeError(`Количество должно быть от 1 до ${item.stock}`);
   }
-  cart[index - 1].quantity = quantity;
-  return cart;
+  return cart.map(item => (item.id === productId ? { ...item, quantity } : item));
 }
-function removeFromCart(cart, index) {
-  const item = cart[index - 1];
-  if (!item) {
-    return cart;
-  }
-
-  cart.splice(index - 1, 1);
-  return cart;
+function removeFromCart(cart, productId) {
+  return cart.filter(item => item.id !== productId);
 }
 function calculateCartSubtotal(cart) {
   return cart.reduce((acc, item) => acc + item.price * item.quantity, 0);
